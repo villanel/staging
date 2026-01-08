@@ -107,8 +107,8 @@ spec:
       serviceAccountName: bookinfo-ratings
       containers:
       - name: ratings
-        image: docker.io/villanel/bookinfo-ratings:latest
-        imagePullPolicy: Never
+        image: villanel/bookinfo-ratings:latest
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 9080
         env:
@@ -139,8 +139,8 @@ spec:
       serviceAccountName: bookinfo-ratings
       containers:
       - name: ratings
-        image: docker.io/villanel/bookinfo-ratings:latest
-        imagePullPolicy: Never
+        image: villanel/bookinfo-ratings:latest
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 9080
         env:
@@ -201,8 +201,8 @@ spec:
       serviceAccountName: bookinfo-details
       containers:
       - name: details
-        image: docker.io/villanel/bookinfo-details:latest
-        imagePullPolicy: Never
+        image: villanel/bookinfo-details:latest
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 9081
         env:
@@ -233,8 +233,8 @@ spec:
       serviceAccountName: bookinfo-details
       containers:
       - name: details
-        image: bookinfo/details:latest
-        imagePullPolicy: Never
+        image: villanel/bookinfo-details:latest
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 9081
         env:
@@ -295,8 +295,8 @@ spec:
       serviceAccountName: bookinfo-reviews
       containers:
       - name: reviews
-        image: docker.io/villanel/bookinfo-reviews:latest
-        imagePullPolicy: Never
+        image: villanel/bookinfo-reviews:latest
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 9082
         env:
@@ -331,8 +331,8 @@ spec:
       serviceAccountName: bookinfo-reviews
       containers:
       - name: reviews
-        image: bookinfo/reviews:latest
-        imagePullPolicy: Never
+        image: villanel/bookinfo-reviews:latest
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 9082
         env:
@@ -367,8 +367,8 @@ spec:
       serviceAccountName: bookinfo-reviews
       containers:
       - name: reviews
-        image: bookinfo/reviews:latest
-        imagePullPolicy: Never
+        image: villanel/bookinfo-reviews:latest
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 9082
         env:
@@ -431,8 +431,8 @@ spec:
       serviceAccountName: bookinfo-productpage
       containers:
       - name: productpage
-        image: docker.io/villanel/bookinfo-productpage:latest
-        imagePullPolicy: Never
+        image: villanel/bookinfo-productpage:latest
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 9083
         env:
@@ -469,8 +469,8 @@ spec:
       serviceAccountName: bookinfo-productpage
       containers:
       - name: productpage
-        image: bookinfo/productpage:latest
-        imagePullPolicy: Never
+        image: villanel/bookinfo-productpage:latest
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 9083
         env:

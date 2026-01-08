@@ -68,7 +68,7 @@ spec:
       containers:
       - name: ratings
         image: bookinfo/ratings:latest
-        imagePullPolicy: Never
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 9080
         env:
@@ -109,7 +109,7 @@ spec:
       containers:
       - name: details
         image: bookinfo/details:latest
-        imagePullPolicy: Never
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 9081
         env:
@@ -150,7 +150,7 @@ spec:
       containers:
       - name: reviews
         image: bookinfo/reviews:latest
-        imagePullPolicy: Never
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 9082
         env:
@@ -193,7 +193,7 @@ spec:
       containers:
       - name: productpage
         image: bookinfo/productpage:latest
-        imagePullPolicy: Never
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 9083
         env:
