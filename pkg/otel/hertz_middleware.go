@@ -2,10 +2,11 @@ package otel
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/cloudwego/hertz/pkg/app"
-	"github.com/cloudwego/hertz/pkg/protocol"       // 修复：导入 protocol 包
+	"github.com/cloudwego/hertz/pkg/protocol" // 修复：导入 protocol 包
 	"github.com/cloudwego/hertz/pkg/protocol/consts"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -50,13 +51,26 @@ func Middleware(serviceName string) app.HandlerFunc {
 
 		// 2. 处理 PR 染色标识
 		prID := string(ctx.GetHeader("x-pr-id"))
+		// fmt.Printf("Step 1:  prID: %s\n", prID)
+		// prID = "test_pr_id" // 修改点：把空格改成下划线或连字符
+		fmt.Printf("Step 0: Detected :%s %s\n", serviceName, prID)
 		if prID != "" {
-			if m, err := baggage.NewMember("pr_id", prID); err == nil {
+			fmt.Printf("Step 1: Detected prID:%s %s\n", serviceName, prID)
+
+			m, err := baggage.NewMember("pr_id", prID)
+			if err != nil {
+				// 如果这里报错，你会看到具体的字符限制原因
+				fmt.Printf("Step 2 Error: Invalid baggage member: %v\n", err)
+			} else {
 				b, _ := baggage.New(m)
 				c = baggage.ContextWithBaggage(c, b)
+
+				// 验证当前 Context 是否存入成功
+				d := baggage.FromContext(c)
+				val := d.Member("pr_id").Value()
+				fmt.Printf("Step 3: Baggage in Context: %s\n", val)
 			}
 		}
-
 		// 3. 开始 Trace
 		tracer := otel.Tracer("hertz")
 		method := string(ctx.Request.Method())
