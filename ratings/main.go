@@ -29,8 +29,8 @@ func main() {
 	h.Use(otel.Middleware("ratings"))
 
 	// 4. 定义路由
-	h.GET("/ratings/:id", func(c context.Context, ctx *app.RequestContext) {
-		id := ctx.Param("id")
+	h.GET("/ratings", func(c context.Context, ctx *app.RequestContext) {
+		id := "test"
 		// fmt.Println("Received request for product ID:", id)
 		// --- 隔离验证逻辑 ---
 		// 从 Context 中提取 Baggage，查看当前请求是否属于某个 PR

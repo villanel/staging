@@ -67,11 +67,10 @@ func main() {
 	hc, _ := client.NewClient()
 	hc.Use(tracing.ClientMiddleware())
 
-	h.GET("/productpage/:id", func(c context.Context, ctx *app.RequestContext) {
-		id := ctx.Param("id")
+	h.GET("/productpage", func(c context.Context, ctx *app.RequestContext) {
 
 		// --- 调用 Details 服务 ---
-		_, detailsBody, err := hc.Get(c, nil, fmt.Sprintf("%s/details/%s", detailsURL, id))
+		_, detailsBody, err := hc.Get(c, nil, fmt.Sprintf("%s/details", detailsURL ))
 		if err != nil {
 			ctx.JSON(consts.StatusInternalServerError, utils.H{"error": "details service: " + err.Error()})
 			return
@@ -81,7 +80,7 @@ func main() {
 
 		// --- 调用 Reviews 服务 ---
 		// 修正点 1: 使用新变量 reviewsBody，这样 := 左侧就有新变量了
-		_, reviewsBody, err := hc.Get(c, nil, fmt.Sprintf("%s/reviews/%s", reviewsURL, id))
+		_, reviewsBody, err := hc.Get(c, nil, fmt.Sprintf("%s/reviews", reviewsURL))
 		if err != nil {
 			ctx.JSON(consts.StatusInternalServerError, utils.H{"error": "reviews service: " + err.Error()})
 			return
@@ -93,7 +92,7 @@ func main() {
 		// --- 聚合返回 ---
 		ctx.JSON(consts.StatusOK, utils.H{
 			"product": map[string]interface{}{
-				"id":      id,
+				"id":      "test",
 				"title":   "The Comedy of Errors",
 				"details": details.Details,
 				"reviews": reviews.Reviews.Reviews,

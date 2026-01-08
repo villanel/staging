@@ -2,6 +2,7 @@ apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
   name: bookinfo-gateway
+  namespace: bookinfo
 spec:
   gatewayClassName: istio
   listeners:
@@ -16,14 +17,15 @@ apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
   name: bookinfo
+  namespace: bookinfo
 spec:
   parentRefs:
   - name: bookinfo-gateway
   rules:
   - matches:
     - path:
-        type: PathPrefix
-        value: /
+        type: Exact
+        value: /productpage
     - path:
         type: PathPrefix
         value: /static
@@ -38,4 +40,4 @@ spec:
         value: /api/v1/products
     backendRefs:
     - name: productpage
-      port: 9080
+      port: 9083

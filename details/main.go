@@ -28,8 +28,8 @@ func main() {
 	h.Use(otel.Middleware("details"))
 
 	// Define route
-	h.GET("/details/:id", func(c context.Context, ctx *app.RequestContext) {
-		id := ctx.Param("id")
+	h.GET("/detailsd", func(c context.Context, ctx *app.RequestContext) {
+		id := "test"
 		book := map[string]interface{}{
 			"id":          id,
 			"author":      "William Shakespeare",

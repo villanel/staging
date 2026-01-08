@@ -47,12 +47,12 @@ if ratingsURL == "" {
 	// 修复 2：修正函数名为 ClientMiddleware()
 	hc.Use(tracing.ClientMiddleware())
 
-	h.GET("/reviews/:id", func(c context.Context, ctx *app.RequestContext) {
-		id := ctx.Param("id")
+	h.GET("/reviews", func(c context.Context, ctx *app.RequestContext) {
+		id := "test"
 
 		// --- 调用 Ratings 服务 ---
 		// 此处传入的 c 包含了从上游提取并经过中间件处理的 Baggage (pr_id)
-		_, body, err := hc.Get(c, nil, fmt.Sprintf("%s/ratings/%s", ratingsURL, id))
+		_, body, err := hc.Get(c, nil, fmt.Sprintf("%s/ratings", ratingsURL))
 		if err != nil {
 			ctx.JSON(consts.StatusInternalServerError, utils.H{"error": "ratings service: " + err.Error()})
 			return
