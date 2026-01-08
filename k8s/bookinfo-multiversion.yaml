@@ -1,0 +1,617 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: bookinfo
+---
+##################################################################################################
+# Jaeger service (single version)
+##################################################################################################
+apiVersion: v1
+kind: Service
+metadata:
+  name: jaeger
+  namespace: bookinfo
+  labels:
+    app: jaeger
+    service: jaeger
+spec:
+  selector:
+    app: jaeger
+  ports:
+  - name: ui
+    port: 16686
+    targetPort: 16686
+  - name: otlp-grpc
+    port: 4317
+    targetPort: 4317
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jaeger-v1
+  namespace: bookinfo
+  labels:
+    app: jaeger
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jaeger
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: jaeger
+        version: v1
+    spec:
+      containers:
+      - name: jaeger
+        image: jaegertracing/all-in-one:latest
+        ports:
+        - containerPort: 16686
+          name: ui
+        - containerPort: 4317
+          name: otlp-grpc
+---
+##################################################################################################
+# Ratings service (multiple versions)
+##################################################################################################
+apiVersion: v1
+kind: Service
+metadata:
+  name: ratings
+  namespace: bookinfo
+  labels:
+    app: ratings
+    service: ratings
+spec:
+  ports:
+  - port: 9080
+    name: http
+    targetPort: 9080
+  selector:
+    app: ratings
+  type: ClusterIP
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: bookinfo-ratings
+  namespace: bookinfo
+  labels:
+    account: ratings
+---
+# Ratings v1
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ratings-v1
+  namespace: bookinfo
+  labels:
+    app: ratings
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ratings
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: ratings
+        version: v1
+    spec:
+      serviceAccountName: bookinfo-ratings
+      containers:
+      - name: ratings
+        image: docker.io/villanel/bookinfo-ratings:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 9080
+        env:
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "jaeger:4317"
+---
+# Ratings v2 (example with different configuration)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ratings-v2
+  namespace: bookinfo
+  labels:
+    app: ratings
+    version: v2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ratings
+      version: v2
+  template:
+    metadata:
+      labels:
+        app: ratings
+        version: v2
+    spec:
+      serviceAccountName: bookinfo-ratings
+      containers:
+      - name: ratings
+        image: docker.io/villanel/bookinfo-ratings:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 9080
+        env:
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "jaeger:4317"
+        - name: RATING_VERSION
+          value: "v2"
+---
+##################################################################################################
+# Details service (multiple versions)
+##################################################################################################
+apiVersion: v1
+kind: Service
+metadata:
+  name: details
+  namespace: bookinfo
+  labels:
+    app: details
+    service: details
+spec:
+  ports:
+  - port: 9081
+    name: http
+    targetPort: 9081
+  selector:
+    app: details
+  type: ClusterIP
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: bookinfo-details
+  namespace: bookinfo
+  labels:
+    account: details
+---
+# Details v1
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: details-v1
+  namespace: bookinfo
+  labels:
+    app: details
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: details
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: details
+        version: v1
+    spec:
+      serviceAccountName: bookinfo-details
+      containers:
+      - name: details
+        image: docker.io/villanel/bookinfo-details:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 9081
+        env:
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "jaeger:4317"
+---
+# Details v2
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: details-v2
+  namespace: bookinfo
+  labels:
+    app: details
+    version: v2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: details
+      version: v2
+  template:
+    metadata:
+      labels:
+        app: details
+        version: v2
+    spec:
+      serviceAccountName: bookinfo-details
+      containers:
+      - name: details
+        image: bookinfo/details:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 9081
+        env:
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "jaeger:4317"
+        - name: DETAILS_VERSION
+          value: "v2"
+---
+##################################################################################################
+# Reviews service (multiple versions)
+##################################################################################################
+apiVersion: v1
+kind: Service
+metadata:
+  name: reviews
+  namespace: bookinfo
+  labels:
+    app: reviews
+    service: reviews
+spec:
+  ports:
+  - port: 9082
+    name: http
+    targetPort: 9082
+  selector:
+    app: reviews
+  type: ClusterIP
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: bookinfo-reviews
+  namespace: bookinfo
+  labels:
+    account: reviews
+---
+# Reviews v1
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: reviews-v1
+  namespace: bookinfo
+  labels:
+    app: reviews
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: reviews
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: reviews
+        version: v1
+    spec:
+      serviceAccountName: bookinfo-reviews
+      containers:
+      - name: reviews
+        image: docker.io/villanel/bookinfo-reviews:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 9082
+        env:
+        - name: RATINGS_SERVICE_URL
+          value: "http://ratings:9080"
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "jaeger:4317"
+        - name: REVIEWS_VERSION
+          value: "v1"
+---
+# Reviews v2
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: reviews-v2
+  namespace: bookinfo
+  labels:
+    app: reviews
+    version: v2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: reviews
+      version: v2
+  template:
+    metadata:
+      labels:
+        app: reviews
+        version: v2
+    spec:
+      serviceAccountName: bookinfo-reviews
+      containers:
+      - name: reviews
+        image: bookinfo/reviews:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 9082
+        env:
+        - name: RATINGS_SERVICE_URL
+          value: "http://ratings:9080"
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "jaeger:4317"
+        - name: REVIEWS_VERSION
+          value: "v2"
+---
+# Reviews v3
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: reviews-v3
+  namespace: bookinfo
+  labels:
+    app: reviews
+    version: v3
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: reviews
+      version: v3
+  template:
+    metadata:
+      labels:
+        app: reviews
+        version: v3
+    spec:
+      serviceAccountName: bookinfo-reviews
+      containers:
+      - name: reviews
+        image: bookinfo/reviews:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 9082
+        env:
+        - name: RATINGS_SERVICE_URL
+          value: "http://ratings:9080"
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "jaeger:4317"
+        - name: REVIEWS_VERSION
+          value: "v3"
+---
+##################################################################################################
+# Productpage service (multiple versions)
+##################################################################################################
+apiVersion: v1
+kind: Service
+metadata:
+  name: productpage
+  namespace: bookinfo
+  labels:
+    app: productpage
+    service: productpage
+spec:
+  ports:
+  - port: 9083
+    name: http
+    targetPort: 9083
+  selector:
+    app: productpage
+  type: NodePort
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: bookinfo-productpage
+  namespace: bookinfo
+  labels:
+    account: productpage
+---
+# Productpage v1
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: productpage-v1
+  namespace: bookinfo
+  labels:
+    app: productpage
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: productpage
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: productpage
+        version: v1
+    spec:
+      serviceAccountName: bookinfo-productpage
+      containers:
+      - name: productpage
+        image: docker.io/villanel/bookinfo-productpage:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 9083
+        env:
+        - name: DETAILS_SERVICE_URL
+          value: "http://details:9081"
+        - name: REVIEWS_SERVICE_URL
+          value: "http://reviews:9082"
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "jaeger:4317"
+        - name: PRODUCTPAGE_VERSION
+          value: "v1"
+---
+# Productpage v2
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: productpage-v2
+  namespace: bookinfo
+  labels:
+    app: productpage
+    version: v2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: productpage
+      version: v2
+  template:
+    metadata:
+      labels:
+        app: productpage
+        version: v2
+    spec:
+      serviceAccountName: bookinfo-productpage
+      containers:
+      - name: productpage
+        image: bookinfo/productpage:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 9083
+        env:
+        - name: DETAILS_SERVICE_URL
+          value: "http://details:9081"
+        - name: REVIEWS_SERVICE_URL
+          value: "http://reviews:9082"
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "jaeger:4317"
+        - name: PRODUCTPAGE_VERSION
+          value: "v2"
+---
+##################################################################################################
+# Version-specific services (for direct access to specific versions)
+##################################################################################################
+# Ratings version services
+apiVersion: v1
+kind: Service
+metadata:
+  name: ratings-v1
+  namespace: bookinfo
+spec:
+  ports:
+  - port: 9080
+    name: http
+  selector:
+    app: ratings
+    version: v1
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ratings-v2
+  namespace: bookinfo
+spec:
+  ports:
+  - port: 9080
+    name: http
+  selector:
+    app: ratings
+    version: v2
+  type: ClusterIP
+---
+# Details version services
+apiVersion: v1
+kind: Service
+metadata:
+  name: details-v1
+  namespace: bookinfo
+spec:
+  ports:
+  - port: 9081
+    name: http
+  selector:
+    app: details
+    version: v1
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: details-v2
+  namespace: bookinfo
+spec:
+  ports:
+  - port: 9081
+    name: http
+  selector:
+    app: details
+    version: v2
+  type: ClusterIP
+---
+# Reviews version services
+apiVersion: v1
+kind: Service
+metadata:
+  name: reviews-v1
+  namespace: bookinfo
+spec:
+  ports:
+  - port: 9082
+    name: http
+  selector:
+    app: reviews
+    version: v1
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: reviews-v2
+  namespace: bookinfo
+spec:
+  ports:
+  - port: 9082
+    name: http
+  selector:
+    app: reviews
+    version: v2
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: reviews-v3
+  namespace: bookinfo
+spec:
+  ports:
+  - port: 9082
+    name: http
+  selector:
+    app: reviews
+    version: v3
+  type: ClusterIP
+---
+# Productpage version services
+apiVersion: v1
+kind: Service
+metadata:
+  name: productpage-v1
+  namespace: bookinfo
+spec:
+  ports:
+  - port: 9083
+    name: http
+  selector:
+    app: productpage
+    version: v1
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: productpage-v2
+  namespace: bookinfo
+spec:
+  ports:
+  - port: 9083
+    name: http
+  selector:
+    app: productpage
+    version: v2
+  type: ClusterIP

@@ -1,0 +1,218 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: bookinfo
+---
+# Jaeger Deployment and Service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jaeger
+  namespace: bookinfo
+  labels:
+    app: jaeger
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jaeger
+  template:
+    metadata:
+      labels:
+        app: jaeger
+    spec:
+      containers:
+      - name: jaeger
+        image: jaegertracing/all-in-one:latest
+        ports:
+        - containerPort: 16686
+          name: ui
+        - containerPort: 4317
+          name: otlp-grpc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jaeger
+  namespace: bookinfo
+spec:
+  selector:
+    app: jaeger
+  ports:
+  - name: ui
+    port: 16686
+    targetPort: 16686
+  - name: otlp-grpc
+    port: 4317
+    targetPort: 4317
+  type: ClusterIP
+---
+# Ratings Deployment and Service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ratings
+  namespace: bookinfo
+  labels:
+    app: ratings
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ratings
+  template:
+    metadata:
+      labels:
+        app: ratings
+    spec:
+      containers:
+      - name: ratings
+        image: bookinfo/ratings:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 9080
+        env:
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "jaeger:4317"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ratings
+  namespace: bookinfo
+spec:
+  selector:
+    app: ratings
+  ports:
+  - port: 9080
+    targetPort: 9080
+  type: ClusterIP
+---
+# Details Deployment and Service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: details
+  namespace: bookinfo
+  labels:
+    app: details
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: details
+  template:
+    metadata:
+      labels:
+        app: details
+    spec:
+      containers:
+      - name: details
+        image: bookinfo/details:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 9081
+        env:
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "jaeger:4317"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: details
+  namespace: bookinfo
+spec:
+  selector:
+    app: details
+  ports:
+  - port: 9081
+    targetPort: 9081
+  type: ClusterIP
+---
+# Reviews Deployment and Service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: reviews
+  namespace: bookinfo
+  labels:
+    app: reviews
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: reviews
+  template:
+    metadata:
+      labels:
+        app: reviews
+    spec:
+      containers:
+      - name: reviews
+        image: bookinfo/reviews:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 9082
+        env:
+        - name: RATINGS_SERVICE_URL
+          value: "http://ratings:9080"
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "jaeger:4317"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: reviews
+  namespace: bookinfo
+spec:
+  selector:
+    app: reviews
+  ports:
+  - port: 9082
+    targetPort: 9082
+  type: ClusterIP
+---
+# Productpage Deployment and Service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: productpage
+  namespace: bookinfo
+  labels:
+    app: productpage
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: productpage
+  template:
+    metadata:
+      labels:
+        app: productpage
+    spec:
+      containers:
+      - name: productpage
+        image: bookinfo/productpage:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 9083
+        env:
+        - name: DETAILS_SERVICE_URL
+          value: "http://details:9081"
+        - name: REVIEWS_SERVICE_URL
+          value: "http://reviews:9082"
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "jaeger:4317"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: productpage
+  namespace: bookinfo
+spec:
+  selector:
+    app: productpage
+  ports:
+  - port: 9083
+    targetPort: 9083
+  type: NodePort
