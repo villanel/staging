@@ -1,0 +1,35 @@
+# --- 第一阶段：编译环境 ---
+FROM golang:1.24-alpine AS builder
+
+WORKDIR /app
+
+# 设置国内代理以解决下载超时
+ENV GOPROXY=https://goproxy.cn,direct
+
+# 1. 先拷贝依赖文件利用缓存
+COPY go.mod go.sum ./
+RUN go mod download
+
+# 2. 拷贝全量代码
+COPY . .
+
+# 3. 静态编译 (禁用 CGO 解决 Alpine 运行问题)
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o productpage ./productpage/main.go
+
+# --- 第二阶段：运行环境 ---
+FROM alpine:3.19
+
+ARG GIT_SHA=unknown
+RUN apk --no-cache add ca-certificates
+
+WORKDIR /app
+
+# 从编译阶段拷贝二进制文件
+COPY --from=builder /app/productpage .
+
+ENV GIT_SHA=${GIT_SHA}
+
+# ProductPage 默认端口
+EXPOSE 9083
+
+CMD ["./main"]
