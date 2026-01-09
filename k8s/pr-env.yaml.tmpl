@@ -68,5 +68,5 @@ spec:
   # --- 规则 B: 兜底逻辑 (低优先级) ---
   # 不需要任何 matches，代表匹配所有其他流量
   - backendRefs:
-    - name: ${SERVICE_NAME} # 转发回原始 Service 本身
+    - name: ${SERVICE_NAME}-stable # 转发回原始 Service 本身
       port: ${SERVICE_PORT}
