@@ -1,0 +1,21 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: reviews-pr-route
+  namespace: bookinfo
+spec:
+  parentRefs:
+  - group: ""
+    kind: Service
+    name: reviews
+    port: 9082 # 注意：确保端口与你请求的 9080 一致
+  rules:
+  - matches:
+    - headers:
+      - type: RegularExpression
+        name: "baggage"
+        # 正则含义：匹配包含 pr_id=test_pr_id 的任意位置字符串
+        value: ".*pr_id=test_pr_id.*"
+    backendRefs:
+    - name: reviews-v3
+      port: 9082
