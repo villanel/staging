@@ -10,12 +10,16 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o details ./details
 
 FROM alpine:3.19
 ARG GIT_SHA=unknown
+ARG PR_ID=unknown
+
 RUN apk --no-cache add ca-certificates
 
 WORKDIR /app
 COPY --from=builder /app/details .
 
 ENV GIT_SHA=${GIT_SHA}
+ENV PR_ID=${PR_ID}
+
 EXPOSE 9081
 
 CMD ["./main"]

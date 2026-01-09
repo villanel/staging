@@ -20,6 +20,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o productpage ./pro
 FROM alpine:3.19
 
 ARG GIT_SHA=unknown
+ARG PR_ID=unknown
 RUN apk --no-cache add ca-certificates
 
 WORKDIR /app
@@ -28,6 +29,7 @@ WORKDIR /app
 COPY --from=builder /app/productpage .
 
 ENV GIT_SHA=${GIT_SHA}
+ENV PR_ID=${PR_ID}
 
 # ProductPage 默认端口
 EXPOSE 9083

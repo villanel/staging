@@ -1,0 +1,110 @@
+name: Bookinfo Precise Multi-Platform CI
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+
+env:
+  REGISTRY: ghcr.io
+  # 建议格式：ghcr.io/用户名/项目名
+  IMAGE_BASE_NAME: ${{ github.repository }}
+
+jobs:
+  # 1. 路径检测任务
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      services: ${{ steps.filter.outputs.changes }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            productpage: ['productpage/**', 'pkg/**', 'go.mod']
+            reviews: ['reviews/**', 'pkg/**', 'go.mod']
+            ratings: ['ratings/**', 'pkg/**', 'go.mod']
+            details: ['details/**', 'pkg/**', 'go.mod']
+
+  # 2. 并行构建任务
+  build-and-push:
+    needs: detect-changes
+    if: ${{ needs.detect-changes.outputs.services != '[]' }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # 只针对变动的服务运行
+        service: ${{ fromJson(needs.detect-changes.outputs.services) }}
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 设置 Docker Buildx (支持多平台编译)
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # 登录 GHCR
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # 提取 Git SHA
+      - name: Extract git SHA
+        id: git-sha
+        run: echo "sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      # 设置 PR ID (如果是 PR 触发则获取编号，否则为空)
+      - name: Set PR ID
+        id: pr-info
+        run: |
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            echo "pr_id=${{ github.event.number }}" >> $GITHUB_OUTPUT
+          else
+            echo "pr_id=none" >> $GITHUB_OUTPUT
+          fi
+
+      # 提取 Docker Metadata (关键：镜像名根据 matrix.service 动态变化)
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_BASE_NAME }}-${{ matrix.service }}
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=sha,prefix=sha-,format=short
+            type=raw,value=pr-${{ steps.pr-info.outputs.pr_id }},enable=${{ github.event_name == 'pull_request' }}
+          flavor: |
+            latest=false
+
+      # 构建并推送
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          # 必须设为根目录，以便 Dockerfile 里的 COPY pkg/ 能工作
+          context: .
+          # 动态选择对应的 Dockerfile
+          file: ${{ matrix.service }}/Dockerfile.${{ matrix.service }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # 开启多平台支持
+          platforms: linux/amd64,linux/arm64
+          # 使用 GitHub Actions 缓存加速构建
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: false
+          # 传入 Build Args：既有 SHA 也有 PR_ID
+          build-args: |
+            GIT_SHA=${{ steps.git-sha.outputs.sha }}
+            PR_ID=${{ steps.pr-info.outputs.pr_id }}
+            CGO_ENABLED=0
