@@ -4,6 +4,10 @@ kind: Deployment
 metadata:
   name: ${SERVICE_NAME}-pr-${PR_ID}
   namespace: bookinfo
+  labels:
+    app: ${SERVICE_NAME}
+    version: pr-${PR_ID}
+    pr-id: "${PR_ID}"
 spec:
   replicas: 1
   selector:
@@ -25,7 +29,27 @@ spec:
         - name: PR_ID
           value: "${PR_ID}"
 ---
-# 2. 为该服务嵌入染色路由
+# 2. 新增：为 PR 版本创建专用的 Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: ${SERVICE_NAME}-pr-${PR_ID} # 对应 HTTPRoute 中的 backendRefs
+  namespace: bookinfo
+  labels:
+    app: ${SERVICE_NAME}
+    version: pr-${PR_ID}
+spec:
+  ports:
+  - port: ${SERVICE_PORT}
+    targetPort: ${SERVICE_PORT}
+    protocol: TCP
+    name: http
+  selector:
+    app: ${SERVICE_NAME}
+    version: pr-${PR_ID} # 精确匹配上面的 PR Pod
+  type: ClusterIP
+---
+# 3. 为该服务嵌入染色路由
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -35,7 +59,7 @@ spec:
   parentRefs:
   - group: ""
     kind: Service
-    name: ${SERVICE_NAME} # 拦截发送给稳定版 Service 的流量
+    name: ${SERVICE_NAME} # 拦截发送给“稳定版 Service”的流量
     port: ${SERVICE_PORT}
   rules:
   - matches:
@@ -44,5 +68,5 @@ spec:
         name: "baggage"
         value: ".*pr_id=${PR_ID}.*"
     backendRefs:
-    - name: ${SERVICE_NAME}-pr-${PR_ID} # 转发给 PR 版 Deployment
+    - name: ${SERVICE_NAME}-pr-${PR_ID} # 转发给刚才创建的“PR 版 Service”
       port: ${SERVICE_PORT}
