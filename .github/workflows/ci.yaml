@@ -136,7 +136,7 @@ jobs:
         run: |
           mkdir -p k8s/generated
           # 使用 envsubst 填充 k8s/pr-env.yaml.tmpl
-          envsubst < k8s/templates/pr-env.yaml.tmpl > k8s/generated/deploy-${{ matrix.service }}.yaml
+          envsubst < k8s/pr-env.yaml.tmpl > k8s/generated/deploy-${{ matrix.service }}.yaml
 
       - name: Upload K8s Artifacts
         uses: actions/upload-artifact@v4

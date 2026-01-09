@@ -14,7 +14,7 @@ import (
 )
 
 func main() {
-	// 1. 初始化 Tracer (确保配置了全局 Propagator)(
+	// 1. 初始化 Tracer (确保配置了全局 Propagator)
 	shutdown, err := otel.InitTracer("ratings")
 	if err != nil {
 		log.Fatalf("Failed to initialize tracer: %v", err)
