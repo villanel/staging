@@ -1,0 +1,284 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: bookinfo
+---
+##################################################################################################
+# 1. Jaeger (观测后端)
+##################################################################################################
+apiVersion: v1
+kind: Service
+metadata:
+  name: jaeger
+  namespace: bookinfo
+spec:
+  selector:
+    app: jaeger
+  ports:
+  - name: ui
+    port: 16686
+    targetPort: 16686
+  - name: otlp-grpc
+    port: 4317
+    targetPort: 4317
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jaeger
+  namespace: bookinfo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jaeger
+  template:
+    metadata:
+      labels:
+        app: jaeger
+    spec:
+      containers:
+      - name: jaeger
+        image: jaegertracing/all-in-one:latest
+        ports:
+        - containerPort: 16686
+        - containerPort: 4317
+
+---
+##################################################################################################
+# 2. Ratings (Stable)
+##################################################################################################
+# 基础 Service (用于 HTTPRoute 拦截)
+apiVersion: v1
+kind: Service
+metadata:
+  name: ratings
+  namespace: bookinfo
+spec:
+  ports:
+  - port: 9080
+    name: http
+  selector:
+    app: ratings
+---
+# Stable 专用 Service (用于 HTTPRoute 兜底)
+apiVersion: v1
+kind: Service
+metadata:
+  name: ratings-stable
+  namespace: bookinfo
+spec:
+  ports:
+  - port: 9080
+    name: http
+  selector:
+    app: ratings
+    version: stable
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ratings-stable
+  namespace: bookinfo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ratings
+      version: stable
+  template:
+    metadata:
+      labels:
+        app: ratings
+        version: stable
+    spec:
+      containers:
+      - name: ratings
+        image: villanel/bookinfo-ratings:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 9080
+        env:
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "jaeger:4317"
+
+---
+##################################################################################################
+# 3. Details (Stable)
+##################################################################################################
+# 基础 Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: details
+  namespace: bookinfo
+spec:
+  ports:
+  - port: 9081
+    name: http
+  selector:
+    app: details
+---
+# Stable 专用 Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: details-stable
+  namespace: bookinfo
+spec:
+  ports:
+  - port: 9081
+    name: http
+  selector:
+    app: details
+    version: stable
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: details-stable
+  namespace: bookinfo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: details
+      version: stable
+  template:
+    metadata:
+      labels:
+        app: details
+        version: stable
+    spec:
+      containers:
+      - name: details
+        image: villanel/bookinfo-details:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 9081
+        env:
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "jaeger:4317"
+
+---
+##################################################################################################
+# 4. Reviews (Stable)
+##################################################################################################
+# 基础 Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: reviews
+  namespace: bookinfo
+spec:
+  ports:
+  - port: 9082
+    name: http
+  selector:
+    app: reviews
+---
+# Stable 专用 Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: reviews-stable
+  namespace: bookinfo
+spec:
+  ports:
+  - port: 9082
+    name: http
+  selector:
+    app: reviews
+    version: stable
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: reviews-stable
+  namespace: bookinfo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: reviews
+      version: stable
+  template:
+    metadata:
+      labels:
+        app: reviews
+        version: stable
+    spec:
+      containers:
+      - name: reviews
+        image: villanel/bookinfo-reviews:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 9082
+        env:
+        - name: RATINGS_SERVICE_URL
+          value: "http://ratings:9080" # 指向基础 Service 触发路由判断
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "jaeger:4317"
+
+---
+##################################################################################################
+# 5. Productpage (Stable)
+##################################################################################################
+# 基础 Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: productpage
+  namespace: bookinfo
+spec:
+  ports:
+  - port: 9083
+    name: http
+  selector:
+    app: productpage
+  type: NodePort
+---
+# Stable 专用 Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: productpage-stable
+  namespace: bookinfo
+spec:
+  ports:
+  - port: 9083
+    name: http
+  selector:
+    app: productpage
+    version: stable
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: productpage-stable
+  namespace: bookinfo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: productpage
+      version: stable
+  template:
+    metadata:
+      labels:
+        app: productpage
+        version: stable
+    spec:
+      containers:
+      - name: productpage
+        image: villanel/bookinfo-productpage:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 9083
+        env:
+        - name: DETAILS_SERVICE_URL
+          value: "http://details:9081" # 指向基础 Service
+        - name: REVIEWS_SERVICE_URL
+          value: "http://reviews:9082" # 指向基础 Service
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "jaeger:4317"
