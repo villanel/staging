@@ -12,16 +12,15 @@ import (
 	"github.com/cloudwego/hertz/pkg/common/utils"
 	"github.com/cloudwego/hertz/pkg/protocol/consts"
 	"github.com/hertz-contrib/obs-opentelemetry/tracing"
-    
-	// 修复 1：为本地 otel 包设置别名以避免命名冲突
 	customOtel "github.com/trae/bookinfo/pkg/otel"
 )
 
 type Rating struct {
 	Ratings struct {
-		ID    string `json:"id"`
-		Stars int    `json:"stars"`
-		Color string `json:"color"`
+		ID       string `json:"id"`
+		Stars    int    `json:"stars"`
+		Color    string `json:"color"`
+		Hostname string `json:"hostname"`
 	} `json:"ratings"`
 }
 func main() {
@@ -49,6 +48,8 @@ if ratingsURL == "" {
 
 	h.GET("/reviews", func(c context.Context, ctx *app.RequestContext) {
 		id := "test"
+		// 获取 hostname
+		hostname, _ := os.Hostname()
 
 		// --- 调用 Ratings 服务 ---
 		// 此处传入的 c 包含了从上游提取并经过中间件处理的 Baggage (pr_id)
@@ -66,17 +67,20 @@ if ratingsURL == "" {
 
 		// --- 聚合结果 ---
 		reviews := map[string]interface{}{
-			"id": id,
+			"id":       id,
+			"hostname": hostname,
 			"reviews": []map[string]interface{}{
 				{
-					"reviewer": "Reviewer1",
-					"text":     "An extremely entertaining play by Shakespeare.",
-					"rating":   rating.Ratings.Stars,
+					"reviewer":      "Reviewer1",
+					"text":          "An extremely entertaining play by Shakespeare.",
+					"rating":        rating.Ratings.Stars,
+					"rating_hostname": rating.Ratings.Hostname,
 				},
 				{
-					"reviewer": "Reviewer2",
-					"text":     "Absolutely fun and entertaining.",
-					"rating":   rating.Ratings.Stars,
+					"reviewer":      "Reviewer2",
+					"text":          "Absolutely fun and entertaining.",
+					"rating":        rating.Ratings.Stars,
+					"rating_hostname": rating.Ratings.Hostname,
 				},
 			},
 		}

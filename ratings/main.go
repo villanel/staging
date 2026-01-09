@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	"os"
 
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/app/server"
@@ -31,7 +32,8 @@ func main() {
 	// 4. 定义路由
 	h.GET("/ratings", func(c context.Context, ctx *app.RequestContext) {
 		id := "test"
-		// fmt.Println("Received request for product ID:", id)
+		// 获取 hostname
+		hostname, _ := os.Hostname()
 		// --- 隔离验证逻辑 ---
 		// 从 Context 中提取 Baggage，查看当前请求是否属于某个 PR
 		b := baggage.FromContext(c)
@@ -48,6 +50,7 @@ func main() {
 			"id":                id,
 			"stars":             stars,
 			"color":             "black",
+			"hostname":          hostname,
 			"active_pr_context": prID, // 将识别到的 PR ID 返回，方便 E2E 测试校验
 		}
 

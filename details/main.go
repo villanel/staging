@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	"os"
 
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/app/server"
@@ -28,8 +29,10 @@ func main() {
 	h.Use(otel.Middleware("details"))
 
 	// Define route
-	h.GET("/detailsd", func(c context.Context, ctx *app.RequestContext) {
+	h.GET("/details", func(c context.Context, ctx *app.RequestContext) {
 		id := "test"
+		// Get hostname
+		hostname, _ := os.Hostname()
 		book := map[string]interface{}{
 			"id":          id,
 			"author":      "William Shakespeare",
@@ -40,6 +43,7 @@ func main() {
 			"language":    "English",
 			"ISBN-10":     "1234567890",
 			"ISBN-13":     "123-1234567890",
+			"hostname":    hostname,
 		}
 		ctx.JSON(consts.StatusOK, utils.H{
 			"details": book,

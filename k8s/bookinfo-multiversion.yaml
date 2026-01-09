@@ -108,7 +108,7 @@ spec:
       containers:
       - name: ratings
         image: villanel/bookinfo-ratings:latest
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         ports:
         - containerPort: 9080
         env:
@@ -140,7 +140,7 @@ spec:
       containers:
       - name: ratings
         image: villanel/bookinfo-ratings:latest
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         ports:
         - containerPort: 9080
         env:
@@ -202,7 +202,7 @@ spec:
       containers:
       - name: details
         image: villanel/bookinfo-details:latest
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         ports:
         - containerPort: 9081
         env:
@@ -234,7 +234,7 @@ spec:
       containers:
       - name: details
         image: villanel/bookinfo-details:latest
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         ports:
         - containerPort: 9081
         env:
@@ -296,7 +296,7 @@ spec:
       containers:
       - name: reviews
         image: villanel/bookinfo-reviews:latest
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         ports:
         - containerPort: 9082
         env:
@@ -332,7 +332,7 @@ spec:
       containers:
       - name: reviews
         image: villanel/bookinfo-reviews:latest
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         ports:
         - containerPort: 9082
         env:
@@ -368,7 +368,7 @@ spec:
       containers:
       - name: reviews
         image: villanel/bookinfo-reviews:latest
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         ports:
         - containerPort: 9082
         env:
@@ -432,7 +432,7 @@ spec:
       containers:
       - name: productpage
         image: villanel/bookinfo-productpage:latest
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         ports:
         - containerPort: 9083
         env:
@@ -470,7 +470,7 @@ spec:
       containers:
       - name: productpage
         image: villanel/bookinfo-productpage:latest
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         ports:
         - containerPort: 9083
         env:

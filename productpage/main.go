@@ -18,7 +18,7 @@ import (
 	customOtel "github.com/trae/bookinfo/pkg/otel"
 )
 
-// Details 和 Reviews 结构体定义保持不变...
+// Details 结构体添加 hostname 字段
 type Details struct {
 	Details struct {
 		ID        string `json:"id"`
@@ -30,16 +30,20 @@ type Details struct {
 		Language  string `json:"language"`
 		ISBN10    string `json:"ISBN-10"`
 		ISBN13    string `json:"ISBN-13"`
+		Hostname  string `json:"hostname,omitempty"`
 	} `json:"details"`
 }
 
+// Reviews 结构体添加 hostname 相关字段
 type Reviews struct {
 	Reviews struct {
-		ID      string `json:"id"`
-		Reviews []struct {
-			Reviewer string `json:"reviewer"`
-			Text     string `json:"text"`
-			Rating   int    `json:"rating"`
+		ID       string `json:"id"`
+		Hostname string `json:"hostname"`
+		Reviews  []struct {
+			Reviewer      string `json:"reviewer"`
+			Text          string `json:"text"`
+			Rating        int    `json:"rating"`
+			RatingHostname string `json:"rating_hostname"`
 		} `json:"reviews"`
 	} `json:"reviews"`
 }
@@ -68,9 +72,11 @@ func main() {
 	hc.Use(tracing.ClientMiddleware())
 
 	h.GET("/productpage", func(c context.Context, ctx *app.RequestContext) {
+		// Get hostname
+		hostname, _ := os.Hostname()
 
 		// --- 调用 Details 服务 ---
-		_, detailsBody, err := hc.Get(c, nil, fmt.Sprintf("%s/details", detailsURL ))
+		_, detailsBody, err := hc.Get(c, nil, fmt.Sprintf("%s/details", detailsURL))
 		if err != nil {
 			ctx.JSON(consts.StatusInternalServerError, utils.H{"error": "details service: " + err.Error()})
 			return
@@ -79,23 +85,22 @@ func main() {
 		json.Unmarshal(detailsBody, &details)
 
 		// --- 调用 Reviews 服务 ---
-		// 修正点 1: 使用新变量 reviewsBody，这样 := 左侧就有新变量了
 		_, reviewsBody, err := hc.Get(c, nil, fmt.Sprintf("%s/reviews", reviewsURL))
 		if err != nil {
 			ctx.JSON(consts.StatusInternalServerError, utils.H{"error": "reviews service: " + err.Error()})
 			return
 		}
 		var reviews Reviews
-		// 修正点 2: 使用正确的变量 reviewsBody 进行反序列化
 		json.Unmarshal(reviewsBody, &reviews)
 
 		// --- 聚合返回 ---
 		ctx.JSON(consts.StatusOK, utils.H{
 			"product": map[string]interface{}{
-				"id":      "test",
-				"title":   "The Comedy of Errors",
-				"details": details.Details,
-				"reviews": reviews.Reviews.Reviews,
+				"id":              "test",
+				"title":           "The Comedy of Errors",
+				"hostname":        hostname,
+				"details":         details.Details,
+				"reviews":         reviews.Reviews,
 			},
 		})
 	})
