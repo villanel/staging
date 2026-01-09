@@ -108,3 +108,42 @@ jobs:
             GIT_SHA=${{ steps.git-sha.outputs.sha }}
             PR_ID=${{ steps.pr-info.outputs.pr_id }}
             CGO_ENABLED=0
+  generate-and-publish:
+      needs: build-and-push # 确保镜像已存在
+      runs-on: ubuntu-latest
+      strategy:
+        matrix:
+          service: ${{ fromJson(needs.detect-changes.outputs.services) }}
+      outputs:
+        # 传递生成的文件路径给下一阶段
+        manifest_path: k8s/generated/
+      steps:
+        - uses: actions/checkout@v4
+
+        - name: Prepare Variables
+          run: |
+            case "${{ matrix.service }}" in
+              "productpage") echo "PORT=9083" >> $GITHUB_ENV ;;
+              "reviews")     echo "PORT=9082" >> $GITHUB_ENV ;;
+              "details")     echo "PORT=9081" >> $GITHUB_ENV ;;
+              "ratings")     echo "PORT=9080" >> $GITHUB_ENV ;;
+            esac
+            echo "IMAGE=ghcr.io/${{ github.repository }}-${{ matrix.service }}:pr-${{ github.event.number }}" >> $GITHUB_ENV
+
+        - name: Generate Final YAML
+          env:
+            PR_ID: ${{ github.event.number }}
+            SERVICE_NAME: ${{ matrix.service }}
+            SERVICE_PORT: ${{ env.PORT }}
+            IMAGE_NAME: ${{ env.IMAGE }}
+          run: |
+            mkdir -p k8s/generated
+            # 渲染模板，生成不含变量的纯净 YAML
+            envsubst < k8s/templates/pr-env.yaml.tmpl > k8s/generated/pr-${PR_ID}-${{ matrix.service }}.yaml
+
+        # 发布到 GitHub Artifacts (可在 Action 页面下载查看)
+        - name: Upload Artifact
+          uses: actions/upload-artifact@v4
+          with:
+            name: k8s-manifests-${{ matrix.service }}
+            path: k8s/generated/
