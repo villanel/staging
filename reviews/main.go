@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/app/client"
 	"github.com/cloudwego/hertz/pkg/app/server"
@@ -23,12 +24,13 @@ type Rating struct {
 		Hostname string `json:"hostname"`
 	} `json:"ratings"`
 }
+
 func main() {
-	// 1. 初始化 OTel (使用别名调用)
-ratingsURL := os.Getenv("RATINGS_SERVICE_URL")
-if ratingsURL == "" {
-    ratingsURL = "http://localhost:9080"
-}
+	// 1. 初始化 OTel (使用别调用)
+	ratingsURL := os.Getenv("RATINGS_SERVICE_URL")
+	if ratingsURL == "" {
+		ratingsURL = "http://localhost:9080"
+	}
 	shutdown, err := customOtel.InitTracer("reviews")
 	if err != nil {
 		log.Fatalf("Failed to initialize tracer: %v", err)
@@ -42,7 +44,7 @@ if ratingsURL == "" {
 
 	// 3. 客户端中间件：调用下游（Ratings）时自动透传 Context
 	hc, _ := client.NewClient()
-    
+
 	// 修复 2：修正函数名为 ClientMiddleware()
 	hc.Use(tracing.ClientMiddleware())
 
@@ -71,15 +73,15 @@ if ratingsURL == "" {
 			"hostname": hostname,
 			"reviews": []map[string]interface{}{
 				{
-					"reviewer":      "Reviewer1",
-					"text":          "An extremely entertaining play by Shakespeare.",
-					"rating":        rating.Ratings.Stars,
+					"reviewer":        "Reviewer1",
+					"text":            "An extremely entertaining play by Shakespeare.",
+					"rating":          rating.Ratings.Stars,
 					"rating_hostname": rating.Ratings.Hostname,
 				},
 				{
-					"reviewer":      "Reviewer2",
-					"text":          "Absolutely fun and entertaining.",
-					"rating":        rating.Ratings.Stars,
+					"reviewer":        "Reviewer2",
+					"text":            "Absolutely fun and entertaining.",
+					"rating":          rating.Ratings.Stars,
 					"rating_hostname": rating.Ratings.Hostname,
 				},
 			},
