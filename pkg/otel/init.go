@@ -3,6 +3,7 @@ package otel
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"time"
 
@@ -21,7 +22,7 @@ func InitTracer(serviceName string) (func(context.Context) error, error) {
 	if endpoint == "" {
 		endpoint = "localhost:4317"
 	}
-
+	log.Printf("service PR_ID:%s", os.Getenv("PR_ID"))
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 

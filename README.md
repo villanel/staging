@@ -349,6 +349,58 @@ jobs:
           path: k8s/generated/
 ```
 
+## 服务调用关系
+
+### 服务概述
+本项目包含四个核心服务，它们之间通过HTTP接口进行通信，形成完整的调用链：
+
+| 服务名称 | 端口 | 主要功能 | 依赖服务 |
+|---------|------|---------|---------|
+| productpage | 9083 | 前端服务，展示产品信息 | reviews, details |
+| reviews | 9082 | 提供产品评论数据 | ratings |
+| ratings | 9080 | 提供产品评分数据 | 无 |
+| details | 9081 | 提供产品详情数据 | 无 |
+
+### 调用关系图
+```
+┌─────────────────┐
+│  productpage    │
+└────────┬────────┘
+         │
+         ├───────────┐
+         ▼           ▼
+┌─────────────┐ ┌─────────────┐
+│   reviews   │ │   details   │
+└────────┬────┘ └─────────────┘
+         │
+         ▼
+┌─────────────────┐
+│    ratings      │
+└─────────────────┘
+```
+
+### 详细调用流程
+1. **productpage → details**
+   - productpage服务调用details服务的`/details`端点获取产品详情
+   - 调用方式：HTTP GET请求
+   - 端口：9081
+
+2. **productpage → reviews**
+   - productpage服务调用reviews服务的`/reviews`端点获取产品评论
+   - 调用方式：HTTP GET请求
+   - 端口：9082
+
+3. **reviews → ratings**
+   - reviews服务调用ratings服务的`/ratings`端点获取产品评分
+   - 调用方式：HTTP GET请求
+   - 端口：9080
+
+### 完整调用链
+```
+Client → productpage → details
+Client → productpage → reviews → ratings
+```
+
 ## 可观测性实现
 
 ### OpenTelemetry 配置
