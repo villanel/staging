@@ -39,12 +39,7 @@ func main() {
 		b := baggage.FromContext(c)
 		prID := b.Member("pr_id").Value()
 
-		// 如果是在测试 PR 流量，我们可以在响应中添加标识，方便调试验证
 		stars := 4
-		if prID != "" {
-			log.Printf("[PR-%s] Processing ratings for product: %s", prID, id)
-			// 甚至可以根据 PR ID 模拟不同的业务行为
-		}
 
 		rating := map[string]interface{}{
 			"id":                id,
