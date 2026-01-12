@@ -130,7 +130,7 @@ spec:
 4. **配置生成**：使用模板生成Kubernetes部署配置
 5. **部署PR版本**：在Staging集群部署PR服务和路由规则
 6. **运行测试**：发送带`x-pr-id`头的测试请求
-7. **资源清理**：PR合并或关闭后删除相关资源
+<!-- 7. **资源清理**：PR合并或关闭后删除相关资源 -->
 
 ---
 
@@ -301,12 +301,7 @@ kubectl delete -f k8s/deploy-ratings-pr3.yaml
 kubectl delete -f k8s/bookinfo-gateway.yaml
 kubectl delete -f k8s/bookinfo-stable.yaml
 
-# 移除命名空间标签
-kubectl label namespace bookinfo istio.io/dataplane-mode-
 
-# 删除 Waypoint 代理
-istioctl waypoint delete -n bookinfo
-```
 
 ---
 
