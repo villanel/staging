@@ -11,6 +11,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o reviews ./reviews
 FROM alpine:3.19
 ARG GIT_SHA=unknown
 ARG PR_ID=unknown
+ARG RATINGS_SERVICE_URL=http://ratings:9080
 
 RUN apk --no-cache add ca-certificates
 
@@ -19,6 +20,7 @@ COPY --from=builder /app/reviews .
 
 ENV GIT_SHA=${GIT_SHA}
 ENV PR_ID=${PR_ID}
+ENV RATINGS_SERVICE_URL=${RATINGS_SERVICE_URL}
 
 EXPOSE 9082
 

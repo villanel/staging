@@ -45,7 +45,7 @@ func main() {
 	// 3. 客户端中间件：调用下游（Ratings）时自动透传 Context
 	hc, _ := client.NewClient()
 
-	// 修复 2：修正函数名为 ClientMiddleware()
+	// 修复 ：修正函数名为 ClientMiddleware()
 	hc.Use(tracing.ClientMiddleware())
 
 	h.GET("/reviews", func(c context.Context, ctx *app.RequestContext) {

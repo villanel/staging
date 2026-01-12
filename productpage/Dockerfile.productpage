@@ -21,6 +21,9 @@ FROM alpine:3.19
 
 ARG GIT_SHA=unknown
 ARG PR_ID=unknown
+ARG DETAILS_SERVICE_URL=http://details:9081
+ARG REVIEWS_SERVICE_URL=http://reviews:9082
+
 RUN apk --no-cache add ca-certificates
 
 WORKDIR /app
@@ -30,6 +33,8 @@ COPY --from=builder /app/productpage .
 
 ENV GIT_SHA=${GIT_SHA}
 ENV PR_ID=${PR_ID}
+ENV DETAILS_SERVICE_URL=${DETAILS_SERVICE_URL}
+ENV REVIEWS_SERVICE_URL=${REVIEWS_SERVICE_URL}
 
 # ProductPage 默认端口
 EXPOSE 9083
