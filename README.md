@@ -9,6 +9,8 @@
 * **资源高效利用**：在monorepo中，无需为每个 PR 复制整套 Namespace，仅部署变更的服务实例。
 ---
 
+
+
 ## 🏗️ 方案架构
 
 ### 设计理念
@@ -301,7 +303,9 @@ kubectl delete -f k8s/deploy-ratings-pr3.yaml
 kubectl delete -f k8s/bookinfo-gateway.yaml
 kubectl delete -f k8s/bookinfo-stable.yaml
 
+```
 
 
----
+## 🔮 未来计划
 
+目前我们的方案使用简单的无状态微服务为例，通过HTTP或gRPC等L7协议实现请求标记和路由，这在基本场景下非常有效。但在实际生产环境中，还需要考虑数据库、消息队列等有状态资源的隔离问题。例如对于数据库可以采用新建schema或者在启动时动态拉起临时的数据库等方式，对于消息队列则可以采用多topic方式，具体实现视场景而定。
