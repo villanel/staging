@@ -26,7 +26,7 @@ type Rating struct {
 }
 
 func main() {
-	// 1. 初始化 OTel (使用别调用)
+	// 1. 初始化 OTel (使用别调用
 	ratingsURL := os.Getenv("RATINGS_SERVICE_URL")
 	if ratingsURL == "" {
 		ratingsURL = "http://localhost:9080"
